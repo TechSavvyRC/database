@@ -1,0 +1,257 @@
+##====================================================================================##
+##                   MySQL TLS Secret Configuration for Ingress                       ##
+##                                                                                    ##
+## Purpose:                                                                           ##
+## --------                                                                           ##
+## This manifest defines a Kubernetes Secret to store the TLS certificate and private ##
+## key for securing ingress traffic to the phpMyAdmin service.                        ##
+## The Secret is used by the Ingress resource to terminate TLS connections.           ##
+##                                                                                    ##
+## Usage:                                                                             ##
+## ------                                                                             ##
+## - The Secret contains the TLS certificate and private key used for HTTPS traffic.  ##
+## - It is referenced by the Ingress resource to encrypt traffic for secure access    ##
+##   to phpMyAdmin over the web.                                                      ##
+##                                                                                    ##
+## Key Configurations:                                                                ##
+## ------------------                                                                 ##
+## - tls.crt: The base64-encoded TLS certificate for securing the connection.         ##
+## - tls.key: The base64-encoded TLS private key associated with the certificate.     ##
+##                                                                                    ##
+## Note:                                                                              ##
+## -----                                                                              ##
+## Ensure that the TLS certificate and key are generated correctly and securely.      ##
+##====================================================================================##
+
+apiVersion: v1
+kind: Secret
+metadata:
+  # Name of the Secret containing the TLS certificate and key
+  name: mysql-ingress-tls-secret
+
+  # Namespace where the Secret is stored
+  namespace: database
+
+# Specifies that this Secret is for TLS certificates
+type: kubernetes.io/tls
+
+data:
+  # The base64-encoded TLS certificate
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURORENDQWh5Z0F3SUJBZ0lVVmlwQUpVRlZuM1VXV25PMi96RDVyKytsdzNNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0d6RVpNQmNHQTFVRUF3d1FiWGx6Y1d3dWJXRnlkbVZzTG1OdmJUQWVGdzB5TlRBeE1UQXhNekE1TWpOYQpGdzB6TXpBek1qa3hNekE1TWpOYU1Cc3hHVEFYQmdOVkJBTU1FRzE1YzNGc0xtMWhjblpsYkM1amIyMHdnZ0VpCk1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRHJqdlFwQ0xlR2d3eUxkOFowUFBWY1Rhc1UKdzR0VlFUZkc5SFpGd0RGWXUzb1p2aythRFRSU24xRVgyTXBBbUdJL0IzRmlKNVRjSVZidDRGMXFhSkhpL2tkWAo5U1BXaEN0aVRSaUw3Z1kvZ1NaSGFmalB4WGViVkRNWjFjb3FCbjJHS2VuNmZxdGY1RnJRcmhkQWJsTTArWXJYCm4wdnZOcFdYUno3WU9Wd1N0OGdYQ253NmNyMmpwWU1zQUJmVmhha3NnVTl5SEZlWWJ6SXc3a1dTdDhWUWxWNFMKR3RFeGFxcGFiUTh6KzJqQ3VEMlRBUzJud3UxbGVxYWRrdGlTOGgrREtuby9SSC9vVlJqQlpRdGJBUXhpV0RSSgpZQWUxdzRzY0N0aFcyakVMZlNLZHFSbUlST2JrOUZweFQ1VFVjMXozWTRKOXY1Rkk4aDhGL0xES2c3bXpBZ01CCkFBR2pjREJ1TUIwR0ExVWREZ1FXQkJTTHVYRlA4Qi82am9QaEhyYk4wSXF4ekNYRkNqQWZCZ05WSFNNRUdEQVcKZ0JTTHVYRlA4Qi82am9QaEhyYk4wSXF4ekNYRkNqQVBCZ05WSFJNQkFmOEVCVEFEQVFIL01Cc0dBMVVkRVFRVQpNQktDRUcxNWMzRnNMbTFoY25abGJDNWpiMjB3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUlXSXV2MWtqS1hECkJRVjM2Vmp1Wnlad0NaMFU3NFNRREg1c2pFcW1NWWQreHhPenFiRmthK2hFdGxmK3BXbTUrSzFYN213NGNWSjkKWmR4UEgxR1dCQTNJU0JwMmRNay9TRXh5Z3lSN3R4czI5Tll0cHREK2JTK1FjQVhmdHoyZjFKYi9tbHd4dHorcQpnOTRnREwzMGl5dW5IMEYvQmxaa2NyS0ZSbEQzR1U5amErU3J5V2phSklZVnlTRkpKWVc0VGlIcUpCeGllL1M4CnJCdVdHeGtqcDZOTWpxeUVHZFVEOThqR0tRVjd6T2lQMy9DdUlkRG5yZEFxRE4rRldRUTd6T20rV0ZYMDdVL20KSjR1VkZhdnNlU2hRNXNOVUM1bW9xWTFVMGVLYUZWQ1hqTit3RjZIczYvNjl0NkdMMDRDMjA3U1p5clJZMjYrNQo5aDdPSVQzOWRqST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+
+  # The base64-encoded TLS private key
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRRHJqdlFwQ0xlR2d3eUwKZDhaMFBQVmNUYXNVdzR0VlFUZkc5SFpGd0RGWXUzb1p2aythRFRSU24xRVgyTXBBbUdJL0IzRmlKNVRjSVZidAo0RjFxYUpIaS9rZFg5U1BXaEN0aVRSaUw3Z1kvZ1NaSGFmalB4WGViVkRNWjFjb3FCbjJHS2VuNmZxdGY1RnJRCnJoZEFibE0wK1lyWG4wdnZOcFdYUno3WU9Wd1N0OGdYQ253NmNyMmpwWU1zQUJmVmhha3NnVTl5SEZlWWJ6SXcKN2tXU3Q4VlFsVjRTR3RFeGFxcGFiUTh6KzJqQ3VEMlRBUzJud3UxbGVxYWRrdGlTOGgrREtuby9SSC9vVlJqQgpaUXRiQVF4aVdEUkpZQWUxdzRzY0N0aFcyakVMZlNLZHFSbUlST2JrOUZweFQ1VFVjMXozWTRKOXY1Rkk4aDhGCi9MREtnN216QWdNQkFBRUNnZ0VBRi9uRWF6cktaMFFHYmxtaUZ1bXZkWllvTUNSWkZiUGVKLzl3M0ZlY0RqS0MKMG9UMjJEQzQzeUg5SUlhOXkwWlhWWi85eitaRWRnVmtzakNRZ1lpa05LejUrUDlvQnVrTCsyVHFkeStpYml0SQppS05HSW11d2FWeHdHUlNVRDZQNmVjSGhZVkFzUkVYYlluc2R2YjZjOUhyandWK2kzSFc3VXhyNjBBcENqMXI0Cll0OFR0NngxNXcvR0JWNm92SFdHQ2ZJZ01FMlc3Vjl3dFpwanZrODFSanRXSk95ejgyN2pmNHRtVnVSbEo0QzEKOFNJa0RZUGxOWHlIWStRK09TSzFSalNYakFoSUhFY1o4Y3JwT250TUJJTHRvYzJ1ZTZNeXRNaU1QdmIyOHhDUQpqNHZRUVEvV3A0QitPaXZHMFdqWEwrMTNobFZSc1MwSEZ5WGhrc2VQZlFLQmdRRDJRZTBXNUJsS2lvSk40Yi9vCldRUVBsQlBYaHNGd084QW1LaTE0cDlRRVI1UkRHbjNQdXNTbUl5ai8yZUJ1WFZnSHVqaFRraFhNdWc1Z2Z6elEKNFA0dTVHMDBkQ24wY0h0bFYweDRKV2hhQmV3bll0aGxNam9GMzZZQm0xV3pwMDJMc1N2dXRIdzN5K05OMUpPcwpzL1VMMys1L3JxVGgvUStza3lNeVJFNGNCUUtCZ1FEMDRLc0J5MlV3dVFOandwMi9NQi9MUFFzZXJKaXozRHpvCmFQVmRiQWlFVXRiV09PdFNGeHpnSktnTzRWY1lhVlY4WDB2S1RpdXJsVVVPYjJlQnZkcEpxUUsxTXlJM0ErY00KUG9YOVhlbFpGUVdpSkxXUDdUa2JBYXA1ZEZacm53bTBxWlR6T1BIUkcxMFdHcjl3SEtzeUwrWGM5UE5zVTc1YwprUVFIRmdHa1Z3S0JnUURxUW56UU1kejlWQlh4RUxnR3grZGRDbmgxcHZPTldNbkpoSVlOS1ZvL1YvaHFmV0VCCm82SStpV1FQUDZ5SVVMUFZaZ2ovTnhFVjJFaWs4MlZmTHltZVloNmdyNERaejhjUytLRCtDbGZpaTQvRFIveWoKQjh5Nm1hN0tDSUxXakdqd1luSndlYkZSUXR2UXhsQlZFandpTjd3aUtua2ZvaVN1L3FtVXYvV3VJUUtCZ0VmNwp0eWs2NGc4VmcrS1NkZzZhbGU0SGpycEFvRTdXNGV5cjFkelZnaGRyeG8ySWc5eEl3UXMrbTB4c2YwN0V3QVZrCmVnSUpRcHNZc1FrU1JJb0dCaUg3RmJtd1ExR0t5eU4xU2F2MkxEOHNoOUJuSEJ3bjdzNTZpZU5VQ0lkd1k4a0EKeExGT3Z2N3FIVTMvSk9GTy9DQXZwbEZ5akEvKytnbDU4NFlsdU92WEFvR0FTRUUrVjIxS0IxV2pkWXhuWFRlSgpnUmZWUWFNRjR5alA4TmFkTTFaRkdkQmNRTHJZTGVOTlBVeml3eVkzU0lkWWR1UWIyL01MYXRsOS9JZ0tWTmw4CkQ0RVRNWWNMeElzeGY3enp0Z3RYZzlWZllST0tITW1oQ0cyRFNnSG1OQ2JUVERHZ3ZpdElTRmFBdTUxRC9rakkKaE5JUXp2cHZjazk0UmdOYVcwMUY4TzA9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+
+---
+
+##=====================================================================================##
+##                           phpMyAdmin Service Configuration                          ##
+##                                                                                     ##
+## Purpose:                                                                            ##
+## --------                                                                            ##
+## This manifest defines a Kubernetes Service for phpMyAdmin. The Service provides     ##
+## network access to the phpMyAdmin Pods, making them accessible within the cluster.   ##
+##                                                                                     ##
+## Usage:                                                                              ##
+## ------                                                                              ##
+## - The Service exposes the phpMyAdmin Pods via a NodePort, allowing external access. ##
+## - The `selector` ensures traffic is routed to the Pods with the matching labels.    ##
+##                                                                                     ##
+## Key Configurations:                                                                 ##
+## ------------------                                                                  ##
+## - port: The external port for the Service.                                          ##
+## - targetPort: The port on the Pods to forward traffic to.                           ##
+## - nodePort: The port on the node that maps to the Service.                          ##
+##                                                                                     ##
+## Note:                                                                               ##
+## -----                                                                               ##
+## Ensure that the NodePort is accessible through your firewall for external access.   ##
+##=====================================================================================##
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Name of the Service
+  name: phpmyadmin-svc
+
+  # Namespace where the Service is created
+  namespace: database
+
+spec:
+  # Exposes the Service via a NodePort
+  type: NodePort
+
+  selector:
+    # Selects the Pods with the label 'app=phpmyadmin'
+    app: phpmyadmin
+
+  ports:
+    # The protocol used for communication (TCP)
+    - protocol: TCP
+      # The port exposed by the Service
+      port: 80
+
+      # The port on the Pods to which traffic is forwarded
+      targetPort: 80
+
+      # The port on each node that the Service is exposed on
+      nodePort: 31008
+
+---
+
+##=================================================================================##
+##                       phpMyAdmin Deployment Configuration                       ##
+##                                                                                 ##
+## Purpose:                                                                        ##
+## --------                                                                        ##
+## This manifest defines a Kubernetes Deployment for the phpMyAdmin application.   ##
+## The Deployment manages the deployment and scaling of a set of Pods running      ##
+## the phpMyAdmin application within the 'database' namespace.                     ##
+##                                                                                 ##
+## Usage:                                                                          ##
+## ------                                                                          ##
+## - The Deployment ensures that the phpMyAdmin Pods are running and automatically ##
+##   scaled according to the specified replica count.                              ##
+## - The Pods are configured to interact with the MySQL database, as specified by  ##
+##   environment variables.                                                        ##
+##                                                                                 ##
+## Key Configurations:                                                             ##
+## ------------------                                                              ##
+## - replicas: Defines the number of phpMyAdmin Pods to be deployed.               ##
+## - env: Specifies environment variables such as the MySQL host, port, and root   ##
+##   password from the Kubernetes Secret.                                          ##
+##                                                                                 ##
+## Note:                                                                           ##
+## -----                                                                           ##
+## It is recommended to scale the deployment and configure resource limits for     ##
+## production environments.                                                        ##
+##=================================================================================##
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Name of the deployment
+  name: phpmyadmin
+
+  # Namespace where the phpMyAdmin Pods will be deployed
+  namespace: database
+
+  # Label used for identifying the phpMyAdmin application
+  labels:
+    app: phpmyadmin
+
+spec:
+  # Specifies the number of desired replicas for the phpMyAdmin Pods.
+  replicas: 1
+
+  selector:
+    matchLabels:
+
+      # Selector used to identify the Pods belonging to this Deployment
+      app: phpmyadmin
+
+  template:
+    metadata:
+
+      # Labels for the phpMyAdmin Pods
+      labels:
+        app: phpmyadmin
+
+    spec:
+      containers:
+      # Name of the container within the Pod
+      - name: phpmyadmin
+        # Docker image for the phpMyAdmin application
+        image: phpmyadmin/phpmyadmin
+
+        ports:
+          # The port the phpMyAdmin application listens on inside the container
+          - containerPort: 80
+
+        env:
+          # The MySQL service host, used by phpMyAdmin to connect to MySQL
+          - name: PMA_HOST
+            value: mysql-svc
+
+          # The MySQL service port
+          - name: PMA_PORT
+            value: "3306"
+
+          # Fetches the root password for MySQL from the secret
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: password
+
+---
+
+##=====================================================================================##
+##                          phpMyAdmin Ingress Configuration                           ##
+##                                                                                     ##
+## Purpose:                                                                            ##
+## --------                                                                            ##
+## This manifest defines a Kubernetes Ingress resource for external access to          ##
+## the phpMyAdmin service. It routes traffic from external clients to the phpMyAdmin   ##
+## service, using HTTP and HTTPS protocols.                                            ##
+##                                                                                     ##
+## Usage:                                                                              ##
+## ------                                                                              ##
+## - The Ingress resource handles external HTTP/HTTPS requests and routes them to      ##
+##   the phpMyAdmin service.                                                           ##
+## - It uses TLS termination to secure the communication with SSL certificates from    ##
+##   the provided Secret.                                                              ##
+##                                                                                     ##
+## Key Configurations:                                                                 ##
+## ------------------                                                                  ##
+## - tls: Defines the TLS configuration for secure communication (HTTPS).              ##
+## - rules: Specifies the routing rules for incoming traffic based on the hostname     ##
+##   and path.                                                                         ##
+## - backend: Specifies the phpMyAdmin service as the target for the incoming traffic. ##
+##                                                                                     ##
+## Note:                                                                               ##
+## -----                                                                               ##
+## Make sure that the Ingress Controller is configured correctly and the DNS is        ##
+## pointed to the Kubernetes cluster for proper routing.                               ##
+##=====================================================================================##
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  # Name of the Ingress resource
+  name: phpmyadmin-ingress
+
+  # Namespace where the Ingress is created
+  namespace: database
+  annotations:
+
+    # Annotation for URL rewrite in NGINX Ingress Controller
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+spec:
+  tls:
+  - hosts:
+      # Hostname for which the TLS certificate is valid
+      - mysql.marvel.com
+
+    # The Secret that contains the TLS certificate and key
+    secretName: mysql-ingress-tls-secret
+
+  rules:
+
+  # The hostname to match for routing rules
+  - host: mysql.marvel.com
+    http:
+      paths:
+
+      # The path to match for routing (using a prefix match here)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            # The phpMyAdmin Service to route traffic to
+            name: phpmyadmin-svc
+
+            # The port on the phpMyAdmin service to forward traffic to
+            port:
+              number: 80

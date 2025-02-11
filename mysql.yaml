@@ -1,0 +1,501 @@
+##====================================================================================##
+##                   MySQL Persistent Volume & Claim Configuration                    ##
+##                                                                                    ##
+## Purpose:                                                                           ##
+## --------                                                                           ##
+## This manifest defines both a PersistentVolume (PV) and a PersistentVolumeClaim     ##
+## (PVC) for MySQL within the 'database' namespace. It ensures stable, persistent     ##
+## data storage that remains intact even if MySQL Pods are deleted or restarted.      ##
+##                                                                                    ##
+## Usage:                                                                             ##
+## ------                                                                             ##
+## - The PersistentVolume provides a fixed storage resource from the host's file      ##
+##   system.                                                                          ##
+## - The PersistentVolumeClaim requests storage that matches the PV's specifications. ##
+## - Together, they bind the MySQL Pod to persistent storage, safeguarding data.      ##
+##                                                                                    ##
+## Key Configurations:                                                                ##
+## ------------------                                                                 ##
+## - Capacity: Allocates 35Gi of storage for MySQL data persistence.                  ##
+## - Access Mode: Configured with 'ReadWriteOnce' to allow a single node to mount     ##
+##   the volume in read-write mode.                                                   ##
+## - Host Path: Maps the persistent volume to '/data/mysql' on the host system.       ##
+##                                                                                    ##
+## Note:                                                                              ##
+## -----                                                                              ##
+## For production environments, consider using dynamic provisioning with storage      ##
+## classes or external storage systems instead of hostPath for better scalability     ##
+## and reliability.                                                                   ##
+##====================================================================================##
+
+# PersistentVolume definition for MySQL data storage
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  # Name of the PersistentVolume for easy identification
+  name: mysql-pv
+
+  # Specifies the namespace where the PV will be associated
+  namespace: database
+
+  # Labels to categorize and identify the volume
+  labels:
+    type: local
+
+spec:
+  # Defines the storage class to be used for manual binding
+  storageClassName: manual
+
+  # Specifies the total capacity allocated for the PV
+  capacity:
+    storage: 35Gi  # Allocates 35Gi of persistent storage
+
+  # Defines access modes, allowing read/write operations by a single node
+  accessModes:
+    - ReadWriteOnce
+
+  # Specifies the directory on the host where data will be stored
+  hostPath:
+    path: "/data/mysql"  # Maps to '/data/mysql' on the host machine
+
+---
+
+##========================================================================================##
+##                            PersistentVolumeClaim for MySQL                             ##
+## Purpose:                                                                               ##
+## --------                                                                               ##
+## This manifest defines a PersistentVolumeClaim (PVC) that requests storage from a       ##
+## PersistentVolume (PV) for MySQL data. The PVC ensures that a volume with the           ##
+## specified capacity and access mode is provisioned for use within the Kubernetes        ##
+## cluster.                                                                               ##
+##                                                                                        ##
+## Usage:                                                                                 ##
+## ------                                                                                 ##
+## - The PVC is bound to a PersistentVolume (PV) that matches its request for             ##
+##   storage. In this case, the PVC specifies that it requires 35Gi of storage.           ##
+## - The PVC will be created in the 'database' namespace and requests 'ReadWriteOnce'     ##
+##   access mode, meaning the volume can be mounted by a single node for read/write.      ##
+##                                                                                        ##
+## Key Configurations:                                                                    ##
+## ------------------                                                                     ##
+## - storageClassName: The name of the storage class that matches the PV. In this case    ##
+##   it's 'manual', meaning it is bound to an existing PV with the same class.            ##
+## - accessModes: Specifies the access mode for the volume, in this case, 'ReadWriteOnce' ##
+##   for a single node's access.                                                          ##
+## - resources.requests.storage: The amount of storage requested by the PVC, in this      ##
+##   case, 35Gi.                                                                          ##
+##                                                                                        ##
+## Note:                                                                                  ##
+## -----                                                                                  ##
+## Ensure that the associated PersistentVolume exists and has sufficient capacity         ##
+## to satisfy this request.                                                               ##
+##========================================================================================##
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # Name of the PersistentVolumeClaim for identification
+  name: mysql-pvc
+
+  # Specifies the namespace where the PVC will be created
+  namespace: database
+
+spec:
+  # Requests storage using the 'manual' storage class to match the PV
+  storageClassName: manual
+
+  # Defines access modes, requesting read/write access for a single node
+  accessModes:
+    - ReadWriteOnce
+
+  # Specifies the amount of storage required by the claim
+  resources:
+    requests:
+      storage: 35Gi  # Requests 35Gi of persistent storage, matching the PV capacity
+
+---
+
+##====================================================================================##
+##                         MySQL Secret Configuration                                 ##
+##                                                                                    ##
+## Purpose:                                                                           ##
+## --------                                                                           ##
+## This manifest defines a Kubernetes Secret to securely store sensitive information, ##
+## such as the root password for MySQL. The Secret is used to pass sensitive data     ##
+## into the MySQL container at runtime.                                               ##
+##                                                                                    ##
+## Usage:                                                                             ##
+## ------                                                                             ##
+## - The Secret stores the MySQL root password as a key-value pair. It is accessed    ##
+##   by the MySQL container as an environment variable.                               ##
+## - Secrets are used to store sensitive data securely, and Kubernetes ensures that   ##
+##   these secrets are encrypted at rest and only accessible by authorized entities.  ##
+##                                                                                    ##
+## Key Configurations:                                                                ##
+## ------------------                                                                 ##
+## - password: The MySQL root password, stored as a secret value. This password will  ##
+##   be referenced by the MySQL container during initialization.                      ##
+##                                                                                    ##
+## Note:                                                                              ##
+## -----                                                                              ##
+## It is recommended to use Kubernetes Secrets for storing sensitive data, such as    ##
+## passwords, instead of plain text in configuration files or environment variables.  ##
+##====================================================================================##
+
+apiVersion: v1
+kind: Secret
+metadata:
+  # Name of the Secret
+  # The name 'mysql-secret' will be used to reference this Secret in the MySQL deployment.
+  name: mysql-secret
+  
+  # Namespace where the Secret will be deployed
+  # The Secret is placed in the 'database' namespace to ensure it is scoped to MySQL-related
+  # resources and kept separate from other namespaces.
+  namespace: database
+
+data:
+  # MySQL root password (base64 encoded)
+  # The password for the MySQL root user is stored as a base64-encoded value to ensure secure
+  # handling and retrieval by the MySQL container at runtime. 
+  password: cGFzc3dvcmQxMjM=
+---
+
+##=====================================================================================##
+##                      MySQL Initialization Script Configuration                      ##
+##                                                                                     ##
+## Purpose:                                                                            ##
+## --------                                                                            ##
+## This manifest defines a ConfigMap that stores the initialization script for MySQL.  ##
+## The script sets up the 'ecommerce' database and creates the 'ecom_transactions'     ##
+## table. It ensures that MySQL is ready to store and manage data for the application. ##
+##                                                                                     ##
+## Usage:                                                                              ##
+## ------                                                                              ##
+## - The ConfigMap is used to store SQL scripts, making it easy to manage and reuse    ##
+##   initialization logic. The scripts can be mounted as volumes inside MySQL pods     ##
+##   to execute at startup.                                                            ##
+## - The 'init-db.sql' script is used to create the necessary database schema.         ##
+##                                                                                     ##
+## Key Configurations:                                                                 ##
+## ------------------                                                                  ##
+## - init-db.sql: SQL script to create the database and table schema.                  ##
+## - Mounted into the MySQL container via a volume, ensuring that the MySQL instance   ##
+##   initializes correctly upon first startup.                                         ##
+##                                                                                     ##
+## Note:                                                                               ##
+## -----                                                                               ##
+## Ensure that the script matches the expected database schema for the application.    ##
+##=====================================================================================##
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Name of the ConfigMap
+  # This value gives a unique name to the ConfigMap within the 'database' namespace.
+  name: mysql-initdb-config
+  
+  # Namespace where the ConfigMap will be deployed
+  # The ConfigMap is associated with the 'database' namespace to keep the configurations 
+  # isolated from other services in different namespaces.
+  namespace: database
+
+data:
+  # Initialization SQL script
+  # The 'init-db.sql' file contains the SQL commands to initialize the MySQL database schema
+  # and create the necessary tables like 'ecom_transactions'.
+  init-db.sql: |
+    CREATE DATABASE ecommerce;
+    USE ecommerce;
+
+    CREATE TABLE ecom_transactions (
+        transaction_id       VARCHAR(255)  NOT NULL PRIMARY KEY,
+        order_id             VARCHAR(255)  NOT NULL,
+        item_category        VARCHAR(255),
+        item_subcategory     VARCHAR(255),
+        item_name            VARCHAR(255),
+        item_make            VARCHAR(255),
+        item_model           VARCHAR(255),
+        item_cost            DECIMAL(10,2),
+        transaction_type     VARCHAR(50),
+        transaction_status   VARCHAR(50),
+        payment_mode         VARCHAR(50),
+        account_id           VARCHAR(255),
+        order_date           DATETIME,
+        delivery_date        DATETIME,
+        response_time        DECIMAL(10,2),
+        customer_name        VARCHAR(255),
+        customer_mobile      VARCHAR(15),
+        customer_email       VARCHAR(255),
+        country              VARCHAR(255),
+        city                 VARCHAR(255),
+        currency             VARCHAR(10),
+        timestamp            DATETIME
+    );  # This script initializes the database schema.
+
+---
+
+##====================================================================================##
+##                                MySQL StatefulSet Configuration                     ##
+##                                                                                    ##
+## Purpose:                                                                           ##
+## --------                                                                           ##
+## This manifest defines a StatefulSet for deploying MySQL within the 'database'      ##
+## namespace. A StatefulSet ensures that each MySQL pod has a stable identity and     ##
+## persistent storage, even after pod restarts or rescheduling. This configuration    ##
+## is ideal for stateful applications like databases that require stable network      ##
+## identities and persistent volumes.                                                 ##
+##                                                                                    ##
+## Usage:                                                                             ##
+## ------                                                                             ##
+## - The StatefulSet ensures that MySQL pods are deployed with unique identities,     ##
+##   stable network names, and persistent storage for data persistence.               ##
+## - A single replica is configured for this deployment.                              ##
+## - Initialization is handled via init containers, which prepare the storage volume. ##
+##                                                                                    ##
+## Key Configurations:                                                                ##
+## ------------------                                                                 ##
+## - Replicas: Set to 1 for a single MySQL instance.                                  ##
+## - VolumeClaimTemplates: Requests persistent storage of 35Gi for MySQL data.        ##
+## - initContainers: Ensures MySQL data directories have the correct ownership.       ##
+## - serviceName: Creates a stable DNS name for the StatefulSet Pods.                 ##
+## - Environment Variables: MySQL root password is sourced from the Secret.           ##
+##                                                                                    ##
+## Note:                                                                              ##
+## -----                                                                              ##
+## Consider increasing the replica count for high availability in production setups.  ##
+##====================================================================================##
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # Name of the StatefulSet
+  # The name is used to identify the StatefulSet within the 'database' namespace.
+  name: mysql
+  
+  # Namespace where the StatefulSet will be deployed
+  # The StatefulSet is placed within the 'database' namespace to keep it organized
+  # with other database-related resources.
+  namespace: database
+  
+  # Labels for identifying the StatefulSet
+  # These labels help identify and organize the StatefulSet for management purposes.
+  labels:
+    app: mysql
+    type: standalone
+
+spec:
+  # Desired number of replicas for MySQL Pods
+  # This specifies that only one replica (Pod) of MySQL is needed for this deployment.
+  replicas: 1
+  
+  # Selector for matching Pods
+  # The selector matches the Pods created by this StatefulSet using labels.
+  selector:
+    matchLabels:
+      app: mysql
+      type: standalone
+  
+  # Service name governing the StatefulSet
+  # Defines the name of the service that will manage network access to the StatefulSet Pods.
+  serviceName: mysql
+  
+  # Template for the Pods created by the StatefulSet
+  template:
+    metadata:
+      labels:
+        app: mysql
+        type: standalone
+    spec:
+      # Init container to set the correct permissions on the MySQL storage volume
+      initContainers:
+      - name: init-mysql
+        image: busybox
+        command: ["sh", "-c", "chown -R 999:999 /var/lib/mysql"]
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+
+      containers:
+      - name: mysql
+        image: mysql:9.2.0
+        imagePullPolicy: IfNotPresent
+        env:
+          # Environment variable for MySQL root password
+          # The MySQL root password is fetched from the 'mysql-secret' secret for secure management.
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: password
+        ports:
+          - name: mysql-server
+            containerPort: 3306  # MySQL's standard port inside the container.
+        volumeMounts:
+          # Mounts MySQL data volume to store persistent data
+          - mountPath: /var/lib/mysql
+            name: mysql-storage
+          # Mounts the init scripts to initialize the database
+          - mountPath: /docker-entrypoint-initdb.d
+            name: initdb-scripts
+  
+  # Volume claim templates to provide persistent storage for MySQL Pods
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-storage  # Name for the persistent volume claim
+    spec:
+      # Access mode for the volume (can be mounted as read-write by a single node)
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 35Gi  # Request 35Gi of storage for the MySQL Pod's data.
+
+---
+
+##=======================================================================================##
+##                         MySQL External Service Configuration                          ##
+##                                                                                       ##
+## Purpose:                                                                              ##
+## --------                                                                              ##
+## This manifest defines a NodePort Service for MySQL, providing external access         ##
+## to the MySQL Pods. The service is configured to expose MySQL on a specific node port. ##
+##                                                                                       ##
+## Usage:                                                                                ##
+## ------                                                                                ##
+## - The service allows external access to MySQL Pods from outside the Kubernetes        ##
+##   cluster via a NodePort.                                                             ##
+## - It routes incoming traffic on port 31009 (nodePort) to the MySQL Pods inside        ##
+##   the cluster on port 3306.                                                           ##
+##                                                                                       ##
+## Key Configurations:                                                                   ##
+## ------------------                                                                    ##
+## - type: NodePort exposes the service on each node's IP on a static port.              ##
+## - selector: The selector ensures that the service routes traffic to MySQL Pods.       ##
+## - ports: The port mappings configure the external port (31009) and the internal       ##
+##   MySQL port (3306).                                                                  ##
+##                                                                                       ##
+## Note:                                                                                 ##
+## -----                                                                                 ##
+## This service is useful when external clients or applications need to access MySQL.    ##
+## If external exposure is not required, use a ClusterIP service instead.                ##
+##=======================================================================================##
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Name of the service
+  # The service is given the name 'mysql-svc' for identification within the Kubernetes
+  # cluster and when exposing the MySQL service externally.
+  name: mysql-svc
+  
+  # Namespace where the service will be deployed
+  # The service is in the 'database' namespace to ensure it is linked to MySQL-related
+  # resources in the same namespace.
+  namespace: database
+  
+  # Labels for identifying the service
+  # These labels help in categorizing and organizing the service for management and 
+  # monitoring purposes.
+  labels:
+    app: mysql  # Indicates this service is for the MySQL application.
+    type: standalone  # Specifies the deployment type as standalone.
+
+spec:
+  # Type of the service
+  # NodePort exposes the service on each node's IP, allowing external access.
+  type: NodePort
+
+  # Service selector
+  # The selector ensures that the service targets the MySQL Pods based on matching labels.
+  selector:
+    app: mysql
+    type: standalone
+
+  # List of ports exposed by the service
+  # Configures the external port (31009) to be routed to the internal MySQL port (3306).
+  ports:
+    - name: mysql-external  # Name of this specific port configuration.
+      protocol: TCP         # Specifies that the service uses the TCP protocol.
+      port: 3306            # The port on which the service is exposed externally.
+      targetPort: 3306      # The internal port of the MySQL Pods to route traffic to.
+      nodePort: 31009       # The port on each node that exposes the service externally.
+
+---
+
+##====================================================================================##
+##                        MySQL Internal Service Configuration                        ##
+##                                                                                    ##
+## Purpose:                                                                           ##
+## --------                                                                           ##
+## This manifest defines a ClusterIP Service for MySQL, which provides internal       ##
+## access to MySQL Pods within the Kubernetes cluster. The service is designed to     ##
+## allow communication between MySQL and other services in the same namespace or      ##
+## cluster without exposing it externally.                                            ##
+##                                                                                    ##
+## Usage:                                                                             ##
+## ------                                                                             ##
+## - The ClusterIP service ensures that MySQL Pods are reachable only within the      ##
+##   cluster, preventing external traffic from directly accessing the MySQL instance. ##
+## - The service is configured with a stable DNS name, which allows other services    ##
+##   within the cluster to access MySQL easily.                                       ##
+## - The `clusterIP` is set to "None" to allow the service to be used for stateful    ##
+##   applications.                                                                    ##
+##                                                                                    ##
+## Key Configurations:                                                                ##
+## ------------------                                                                 ##
+## - type: ClusterIP ensures internal access only.                                    ##
+## - selector: The selector ensures that this service targets the MySQL Pods.         ##
+## - ports: Configured with port 3306 for MySQL communication within the cluster.     ##
+## - clusterIP: "None" to allow for headless services used with StatefulSets.         ##
+##                                                                                    ##
+## Note:                                                                              ##
+## -----                                                                              ##
+## This service should only be used for internal communication. Ensure that MySQL     ##
+## is not exposed to the outside world unless necessary, in which case a NodePort     ##
+## or LoadBalancer service type should be considered.                                 ##
+##====================================================================================##
+
+apiVersion: v1
+kind: Service
+metadata:
+  # Name of the service
+  # The name defines the DNS address for the service within the cluster.
+  # This value will be used for other services to access MySQL internally.
+  name: mysql-svc-internal
+  
+  # Namespace where the service will be deployed
+  # The service will be deployed under the 'database' namespace to ensure
+  # it is isolated with other database-related resources.
+  namespace: database
+  
+  # Labels for identifying the service
+  # These labels help identify and organize the service for management purposes.
+  labels:
+    app: mysql        # Indicates the service is related to the MySQL application.
+    type: standalone  # Specifies the MySQL deployment type as standalone.
+
+spec:
+  # Type of the service
+  # ClusterIP means this service is only accessible within the cluster.
+  # External access is not allowed through this service.
+  type: ClusterIP
+
+  # Service selector
+  # The selector defines which Pods this service targets based on matching labels.
+  # In this case, it targets MySQL Pods with 'app=mysql' and 'type=standalone'.
+  selector:
+    app: mysql
+    type: standalone
+
+  # List of ports exposed by the service
+  # This specifies the port 3306 for MySQL communication, ensuring other services
+  # in the cluster can interact with the MySQL service.
+  ports:
+    - name: mysql-internal  # Name for this port configuration.
+      protocol: TCP         # Specifies the protocol used by the service.
+      port: 3306            # Port number exposed by the service inside the cluster.
+
+  # ClusterIP configuration
+  # Setting 'None' for the clusterIP allows Kubernetes to create a headless service,
+  # enabling direct connections to individual Pods in the StatefulSet.
+  clusterIP: "None"

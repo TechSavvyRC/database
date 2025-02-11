@@ -1,0 +1,114 @@
+##====================================================================================##
+##                   MySQL Persistent Volume & Claim Configuration                    ##
+##                                                                                    ##
+## Purpose:                                                                           ##
+## --------                                                                           ##
+## This manifest defines both a PersistentVolume (PV) and a PersistentVolumeClaim     ##
+## (PVC) for MySQL within the 'database' namespace. It ensures stable, persistent     ##
+## data storage that remains intact even if MySQL Pods are deleted or restarted.      ##
+##                                                                                    ##
+## Usage:                                                                             ##
+## ------                                                                             ##
+## - The PersistentVolume provides a fixed storage resource from the host's file      ##
+##   system.                                                                          ##
+## - The PersistentVolumeClaim requests storage that matches the PV's specifications. ##
+## - Together, they bind the MySQL Pod to persistent storage, safeguarding data.      ##
+##                                                                                    ##
+## Key Configurations:                                                                ##
+## ------------------                                                                 ##
+## - Capacity: Allocates 35Gi of storage for MySQL data persistence.                  ##
+## - Access Mode: Configured with 'ReadWriteOnce' to allow a single node to mount     ##
+##   the volume in read-write mode.                                                   ##
+## - Host Path: Maps the persistent volume to '/data/mysql' on the host system.       ##
+##                                                                                    ##
+## Note:                                                                              ##
+## -----                                                                              ##
+## For production environments, consider using dynamic provisioning with storage      ##
+## classes or external storage systems instead of hostPath for better scalability     ##
+## and reliability.                                                                   ##
+##====================================================================================##
+
+# PersistentVolume definition for MySQL data storage
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  # Name of the PersistentVolume for easy identification
+  name: mysql-pv
+
+  # Specifies the namespace where the PV will be associated
+  namespace: database
+
+  # Labels to categorize and identify the volume
+  labels:
+    type: local
+
+spec:
+  # Defines the storage class to be used for manual binding
+  storageClassName: manual
+
+  # Specifies the total capacity allocated for the PV
+  capacity:
+    storage: 35Gi  # Allocates 35Gi of persistent storage
+
+  # Defines access modes, allowing read/write operations by a single node
+  accessModes:
+    - ReadWriteOnce
+
+  # Specifies the directory on the host where data will be stored
+  hostPath:
+    path: "/data/mysql"  # Maps to '/data/mysql' on the host machine
+
+---
+
+##========================================================================================##
+##                            PersistentVolumeClaim for MySQL                             ##
+## Purpose:                                                                               ##
+## --------                                                                               ##
+## This manifest defines a PersistentVolumeClaim (PVC) that requests storage from a       ##
+## PersistentVolume (PV) for MySQL data. The PVC ensures that a volume with the           ##
+## specified capacity and access mode is provisioned for use within the Kubernetes        ##
+## cluster.                                                                               ##
+##                                                                                        ##
+## Usage:                                                                                 ##
+## ------                                                                                 ##
+## - The PVC is bound to a PersistentVolume (PV) that matches its request for             ##
+##   storage. In this case, the PVC specifies that it requires 35Gi of storage.           ##
+## - The PVC will be created in the 'database' namespace and requests 'ReadWriteOnce'     ##
+##   access mode, meaning the volume can be mounted by a single node for read/write.      ##
+##                                                                                        ##
+## Key Configurations:                                                                    ##
+## ------------------                                                                     ##
+## - storageClassName: The name of the storage class that matches the PV. In this case    ##
+##   it's 'manual', meaning it is bound to an existing PV with the same class.            ##
+## - accessModes: Specifies the access mode for the volume, in this case, 'ReadWriteOnce' ##
+##   for a single node's access.                                                          ##
+## - resources.requests.storage: The amount of storage requested by the PVC, in this      ##
+##   case, 35Gi.                                                                          ##
+##                                                                                        ##
+## Note:                                                                                  ##
+## -----                                                                                  ##
+## Ensure that the associated PersistentVolume exists and has sufficient capacity         ##
+## to satisfy this request.                                                               ##
+##========================================================================================##
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  # Name of the PersistentVolumeClaim for identification
+  name: mysql-pvc
+
+  # Specifies the namespace where the PVC will be created
+  namespace: database
+
+spec:
+  # Requests storage using the 'manual' storage class to match the PV
+  storageClassName: manual
+
+  # Defines access modes, requesting read/write access for a single node
+  accessModes:
+    - ReadWriteOnce
+
+  # Specifies the amount of storage required by the claim
+  resources:
+    requests:
+      storage: 35Gi  # Requests 35Gi of persistent storage, matching the PV capacity
