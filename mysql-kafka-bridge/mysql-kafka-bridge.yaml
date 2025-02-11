@@ -1,0 +1,186 @@
+##===================================================================================##
+##                           MySQL Kafka Credentials Secret                          ##
+## Purpose:                                                                          ##
+## --------                                                                          ##
+## This manifest defines a Kubernetes Secret containing sensitive credentials for    ##
+## accessing MySQL and Kafka. The credentials are stored in base64-encoded form to   ##
+## ensure secure storage within the Kubernetes cluster.                              ##
+##                                                                                   ##
+## Usage:                                                                            ##
+## ------                                                                            ##
+## - The Secret includes MySQL connection details such as host, user, password, and  ##
+##   database.                                                                       ##
+## - Kafka bootstrap servers and the topic are also stored within the Secret.        ##
+## - These credentials are referenced by other Kubernetes resources like Deployments ##
+##   and Pods via environment variables.                                             ##
+##                                                                                   ##
+## Key Configurations:                                                               ##
+## ------------------                                                                ##
+## - MYSQL_USER: The MySQL username used for database authentication.                ##
+## - MYSQL_PASSWORD: The MySQL password associated with the above user.              ##
+## - MYSQL_DATABASE: The specific database to connect to within MySQL.               ##
+## - MYSQL_HOST: The hostname of the MySQL server.                                   ##
+## - KAFKA_BOOTSTRAP_SERVERS: The address of the Kafka bootstrap servers.            ##
+## - KAFKA_TOPIC: The Kafka topic used for producing or consuming messages.          ##
+##                                                                                   ##
+## Note:                                                                             ##
+## -----                                                                             ##
+## Ensure that the base64-encoded values are correctly generated from the original   ##
+## credentials for proper functionality.                                             ##
+##===================================================================================##
+
+apiVersion: v1
+kind: Secret
+metadata:
+  # The name of the Secret that stores the credentials
+  name: mysql-kafka-credentials
+  # Namespace where the Secret is located
+  namespace: database
+type: Opaque  # The type of the Secret, indicating it's a generic secret for sensitive data
+data:
+  # Base64-encoded MySQL username
+  MYSQL_USER: cm9vdA==
+
+  # Base64-encoded MySQL password
+  MYSQL_PASSWORD: QWRtIW5ANjgxOA==
+
+  # Base64-encoded MySQL database name
+  MYSQL_DATABASE: ZWNvbW1lcmNl
+
+  # Base64-encoded MySQL host address
+  MYSQL_HOST: bXlzcWwtc3ZjLWludGVybmFsLmRhdGFiYXNlLnN2Yy5jbHVzdGVyLmxvY2Fs
+
+  # Base64-encoded Kafka bootstrap server address
+  KAFKA_BOOTSTRAP_SERVERS: a2Fma2Euc3RyZWFtaW5nLnN2Yy5jbHVzdGVyLmxvY2FsOjkwOTI=
+
+  # Base64-encoded Kafka topic
+  KAFKA_TOPIC: ZWNvbV90cmFuc2FjdGlvbnM=
+
+---
+
+##=====================================================================================##
+##                       MySQL to Kafka Deployment Configuration                       ##
+## Purpose:                                                                            ##
+## --------                                                                            ##
+## This manifest defines a Kubernetes Deployment that bridges MySQL with Kafka.        ##
+## The deployment runs a container that connects to the MySQL database and sends data  ##
+## to a Kafka topic.                                                                   ##
+##                                                                                     ##
+## Usage:                                                                              ##
+## ------                                                                              ##
+## - The Deployment manages the container that runs the MySQL to Kafka bridge.         ##
+## - The container uses environment variables sourced from the mysql-kafka-credentials ##
+##   Secret to connect to MySQL and Kafka.                                             ##
+## - The Deployment also configures a liveness probe to ensure that the service is     ##
+##   healthy and able to connect to MySQL.                                             ##
+##                                                                                     ##
+## Key Configurations:                                                                 ##
+## ------------------                                                                  ##
+## - replicas: The number of replicas (pods) of the MySQL to Kafka bridge to run.      ##
+## - containers: Configuration for the container that runs the MySQL to Kafka bridge.  ##
+## - env: Environment variables that provide credentials for MySQL and Kafka, sourced  ##
+##   from the mysql-kafka-credentials Secret.                                          ##
+## - livenessProbe: Checks the health of the container by testing the connection to    ##
+##   MySQL using the credentials provided in the environment variables.                ##
+##                                                                                     ##
+## Note:                                                                               ##
+## -----                                                                               ##
+## Ensure that the mysql-kafka-credentials Secret is correctly created before running  ##
+## this Deployment.                                                                    ##
+##=====================================================================================##
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # The name of the Deployment
+  name: mysql-to-kafka
+  # Namespace where the Deployment will be created
+  namespace: database
+  # Labels associated with the Deployment
+  labels:
+    app: mysql-to-kafka
+spec:
+  # Specifies the number of replicas (pods) to be created
+  replicas: 1
+  selector:
+    matchLabels:
+      # Selects Pods with the label 'app=mysql-to-kafka'
+      app: mysql-to-kafka
+  template:
+    metadata:
+      labels:
+        # Labels for the Pod template
+        app: mysql-to-kafka
+    spec:
+      containers:
+      # The container running the MySQL to Kafka bridge
+      - name: mysql-to-kafka
+        # Docker image for the MySQL to Kafka bridge
+        image: techsavvyrc1984/mysql-kafka-bridge:latest
+        # Ensures that the container image is always pulled on each deployment
+        imagePullPolicy: Always
+
+        env:
+        # Fetches MySQL host from the secret
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mysql-kafka-credentials
+              key: MYSQL_HOST
+
+        # Fetches MySQL user from the secret
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-kafka-credentials
+              key: MYSQL_USER
+
+        # Fetches MySQL password from the secret
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-kafka-credentials
+              key: MYSQL_PASSWORD
+
+        # Fetches MySQL database name from the secret
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-kafka-credentials
+              key: MYSQL_DATABASE
+
+        # Fetches Kafka bootstrap servers from the secret
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            secretKeyRef:
+              name: mysql-kafka-credentials
+              key: KAFKA_BOOTSTRAP_SERVERS
+
+        # Fetches Kafka topic from the secret
+        - name: KAFKA_TOPIC
+          valueFrom:
+            secretKeyRef:
+              name: mysql-kafka-credentials
+              key: KAFKA_TOPIC
+
+        securityContext:
+          # Ensures the container runs with non-root privileges for security
+          runAsNonRoot: true
+          runAsUser: 1001  # Specifies the user ID the container will run as
+          # Prevents privilege escalation to avoid security risks
+          allowPrivilegeEscalation: false
+
+        livenessProbe:
+          exec:
+            # Executes a command to check if MySQL is accessible
+            command:
+            - python
+            - -c
+            - "import os, mysql.connector; mysql.connector.connect(host=os.getenv('MYSQL_HOST'), user=os.getenv('MYSQL_USER'), password=os.getenv('MYSQL_PASSWORD'), database=os.getenv('MYSQL_DATABASE'))"
+          # The delay before the first probe is initiated
+          initialDelaySeconds: 30
+          # The frequency at which the probe is run
+          periodSeconds: 30
+
+      # Ensures that the Pod restarts if it fails
+      restartPolicy: Always  
