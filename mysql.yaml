@@ -158,7 +158,7 @@ data:
   # MySQL root password (base64 encoded)
   # The password for the MySQL root user is stored as a base64-encoded value to ensure secure
   # handling and retrieval by the MySQL container at runtime. 
-  password: cGFzc3dvcmQxMjM=
+  password: QWRtIW5ANjgxOA==
 ---
 
 ##=====================================================================================##
