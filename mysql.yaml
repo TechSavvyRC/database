@@ -338,7 +338,12 @@ spec:
           # Mounts the init scripts to initialize the database
           - mountPath: /docker-entrypoint-initdb.d
             name: initdb-scripts
-  
+
+      volumes:
+        - name: initdb-scripts
+          configMap:
+            name: mysql-initdb-config   
+
   # Volume claim templates to provide persistent storage for MySQL Pods
   volumeClaimTemplates:
   - metadata:
